@@ -1,5 +1,3 @@
-📘 Web-Based Quiz Application
-
 🧩 Project Overview
 
 This project is a Web-Based Quiz Application that allows users to attempt quizzes and receive instant results. It is designed to make the examination process simple, fast, and interactive without requiring any backend or database setup.
