@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Based Quiz Application</title>
+    <!-- Importing a fun, handwritten-style font (Kalam) and a more structured display font (Fredoka) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Kalam:wght@700&display=swap" rel="stylesheet" />
+    <style>
+           :root {
+        --primary-color: #ff6b6b; /* Coral */
+        --secondary-color: #f06595; /* Pink */
+        --accent-color: #4ecdc4; /* Teal */
+        --background-light: #f7f3e8; /* Off-White/Paper */
+        --container-bg: #ffffff;
+        --text-dark: #2c3e50; /* Dark Blue/Black */
+        --doodle-color: var(--text-dark);
+        
+        --score-current-color: #f7a0a0; /* Light Red/Pink for current score */
+        --score-high-color: #2ecc71; /* Green for high score */
+      }
+
+      body {
+        font-family: 'Fredoka', sans-serif;
+        margin: 0;
+        padding: 40px 20px;
+        color: var(--text-dark);
+        background: var(--background-light);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      
+      body::before {
+        content: '';
+        position: absolute;
+        top: 30px;
+        left: 5%;
+        width: 100px;
+        height: 100px;
+        border: 8px dashed var(--primary-color);
+        border-radius: 50%;
+        opacity: 0.4;
+        z-index: -1;
+      }
+      
+     
+      body::after {
+        content: '💡';
+        font-size: 70px;
+        position: absolute;
+        bottom: 5%;
+        right: 15%;
+        opacity: 0.5;
+        transform: rotate(15deg);
+        z-index: -1;
+      }
+
+      h1 {
+        font-family: 'Kalam', cursive;
+        font-size: clamp(2.5em, 5vw, 3.5em); /* Responsive font size */
+        text-align: center;
+        color: var(--primary-color);
+        margin-bottom: 5px; /* Adjust spacing for subtitle */
+        text-shadow: 3px 3px 0px var(--secondary-color), 
+                     5px 5px 0px rgba(0,0,0,0.1);
+        transform: rotate(-2deg);
+      }
+      
+      h2 {
+        font-size: clamp(1.5em, 4vw, 2em);
+        text-align: center;
+        color: var(--text-dark);
+        margin-bottom: 25px;
+        position: relative;
+        padding-bottom: 10px;
+      }
+
+      .subtitle {
+          font-family: 'Fredoka', sans-serif;
+          font-size: 1.2em;
+          margin-top: 0;
+          margin-bottom: 30px;
+          color: var(--text-dark);
+          transform: rotate(1deg);
+          text-shadow: none;
+      }
+
+      .main-heading::after { /* Main H2 separator for Quiz/Setup page */
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: var(--accent-color);
+        border-radius: 2px;
+      }
+
+      /* --- CONTAINER STYLES (The 'Paper') --- */
+      .container {
+        width: 100%;
+        max-width: 700px;
+        margin: 15px auto;
+        background: var(--container-bg);
+        padding: clamp(20px, 5vw, 30px); /* Responsive padding */
+        border-radius: 15px;
+        box-shadow: 10px 10px 0px var(--secondary-color), 
+                    15px 15px 0px rgba(0, 0, 0, 0.1);
+        border: 4px solid var(--doodle-color);
+        transition: transform 0.3s;
+      }
+
+      /* --- INPUTS & LABELS --- */
+      label {
+        display: block;
+        margin: 15px 0 5px;
+        font-weight: 600;
+        font-size: 1.1em;
+      }
+      
+      .doodle-emoji {
+          font-family: 'Kalam', cursive;
+          font-size: 1.5em;
+          margin-right: 10px;
+      }
+
+      input[type='text'], select {
+        width: 100%; /* Full width for mobile */
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 2px solid var(--doodle-color);
+        border-radius: 8px;
+        background-color: var(--background-light);
+        transition: border-color 0.3s;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1em;
+        box-sizing: border-box; /* Include padding/border in element's total width/height */
+      }
+
+      input[type='text']:focus, select:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px var(--primary-color);
+      }
+
+      /* --- BUTTONS (CTA) --- */
+      button {
+        padding: 15px 30px;
+        margin-top: 30px;
+        background: var(--primary-color);
+        color: var(--container-bg);
+        font-size: 1.2em;
+        font-weight: 700;
+        border: 3px solid var(--doodle-color);
+        border-radius: 50px;
+        cursor: pointer;
+        display: block;
+        width: 80%; /* Responsive width */
+        max-width: 350px;
+        margin-left: auto;
+        margin-right: auto;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 5px 5px 0px var(--accent-color);
+        transform: rotate(1deg);
+      }
+
+      button:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 7px 7px 0px var(--secondary-color);
+        background: var(--secondary-color);
+      }
+
+      /* --- QUIZ MODULE STYLES --- */
+      #timer {
+        font-family: 'Kalam', cursive;
+        font-size: clamp(1.8em, 5vw, 2.5em);
+        font-weight: 700;
+        color: var(--primary-color);
+        background: var(--background-light);
+        border: 3px dashed var(--doodle-color);
+        display: block;
+        padding: 10px 20px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+        transition: color 0.5s;
+      }
+      
+      .timer-low {
+          color: #e74c3c !important; /* Use hard error color here */
+          animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+      }
+
+      .question {
+        background: var(--background-light);
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 12px;
+        border: 2px solid var(--doodle-color);
+        box-shadow: 4px 4px 0px var(--accent-color);
+        transition: all 0.2s;
+        transform: rotate(0.5deg);
+      }
+      
+      .question:hover {
+          transform: rotate(0deg) scale(1.01);
+          box-shadow: 6px 6px 0px var(--secondary-color);
+      }
+
+      .question strong {
+          font-size: 1.2em;
+          color: var(--primary-color);
+          display: block;
+          margin-bottom: 10px;
+      }
+      
+      .question-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          flex-wrap: wrap; /* Ensure responsiveness */
+      }
+
+      .question-options {
+          flex-grow: 1;
+      }
+      
+      .question-image {
+          flex-shrink: 0;
+          margin-left: 20px;
+          max-width: 150px;
+          height: auto;
+          border-radius: 8px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+          object-fit: cover;
+      }
+
+      @media (max-width: 600px) {
+          .question-content {
+              flex-direction: column;
+          }
+          .question-image {
+              margin: 10px 0 0 0;
+              max-width: 100%;
+          }
+      }
+
+	#result {
+        text-align: center;
+        font-size: 1.3em;
+        padding: 15px 0;
+        line-height: 1.8;
+      }
+
+      /* New Player Info Card for clean separation */
+      .player-info-card {
+        background: var(--background-light);
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #ddd;
+        font-size: 1.1em;
+        font-weight: 500;
+        line-height: 1.5;
+      }
+      .player-info-card strong {
+          color: var(--text-dark); /* Ensure contrast */
+      }
+      
+      .score-summary {
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          gap: 15px;
+          margin: 30px 0;
+          padding: 20px 10px;
+          background: #f0f8ff; /* Light blue background for clean look */
+          border-radius: 10px;
+          border: 3px solid var(--accent-color);
+          box-shadow: 4px 4px 0px var(--secondary-color);
+          flex-wrap: wrap; 
+      }
+
+      .score-box {
+          padding: 10px 10px; /* Reduced padding */
+          border-radius: 8px;
+          min-width: 120px; /* Reduced min-width */
+          text-align: center;
+          border: 2px solid var(--text-dark);
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15), 4px 4px 0px var(--text-dark); 
+          transition: transform 0.2s, box-shadow 0.2s;
+          flex: 1 1 45%; 
+          max-width: 180px; /* Reduced max width */
+      }
+
+      .score-box:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), 6px 6px 0px var(--text-dark);
+      }
+      
+      @media (max-width: 500px) {
+          .score-box {
+              flex: 1 1 100%; 
+          }
+      }
+
+           .score-box-current {
+          background: linear-gradient(135deg, var(--score-current-color), #e77676);
+          color: var(--text-dark); /* Dark text for contrast on light red */
+          border: 2px solid #e77676;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15), 4px 4px 0px #e77676;
+      }
+
+      /* High Score: Green Gradient */
+      .score-box-high {
+          background: linear-gradient(135deg, var(--score-high-color), #24a85f);
+          color: white; /* White text for contrast on dark green */
+          border: 2px solid #1e7e34;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15), 4px 4px 0px #1e7e34;
+      }
+
+      .score-box p {
+          margin: 0;
+          font-size: 1.8em; /* Reduced size */
+          font-family: 'Kalam', cursive;
+          font-weight: 700;
+          text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1); /* Dark text shadow for contrast */
+      }
+
+
+      #result strong {
+          color: var(--primary-color);
+          font-weight: 700;
+      }
+      
+      #result em {
+          display: block;
+          margin-top: 20px;
+          font-style: italic;
+          font-family: 'Kalam', cursive;
+          font-size: 1.3em; /* Smaller font size as requested */
+          color: #444; /* Light black color as requested */
+      }
+      
+      .review {
+        background: #fff8e1;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 30px;
+        box-shadow: 6px 6px 0px var(--primary-color);
+        border: 3px solid var(--doodle-color);
+        text-align: left;
+      }
+      
+      .review h3 {
+          color: var(--text-dark);
+          font-family: 'Kalam', cursive;
+          font-size: 1.5em;
+          margin-top: 0;
+      }
+
+      .review p {
+          border-bottom: 1px dashed #ccc;
+          padding-bottom: 10px;
+      }
+      
+      .correct {
+        color: var(--score-high-color); /* Using high score green */
+        font-weight: 600;
+      }
+
+      .wrong {
+        color: #e74c3c; /* Use error red */
+        font-weight: 600;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <h1>Web Based Quiz Application</h1>
+    <!-- Subtitle: Change this name manually! -->
+    <h2 class="subtitle">- By Silky Jha</h2>
+    <div class="container" id="setup">
+      <h2 class="main-heading"><span class="doodle-emoji">👋</span> Let's Start the Quiz!</h2>
+      
+      <label for="username"><span class="doodle-emoji">✏️</span> Enter Your Name:</label>
+      <input type="text" id="username" placeholder="e.g., Quiz Master Sam" />
+
+       <label for="timerSelect"><span class="doodle-emoji">⏱️</span> Select Timer:</label>
+      <select id="timerSelect">
+        <option value="60">60 seconds </option>
+        <option value="90">90 seconds </option>
+        <option value="120">120 seconds </option>
+      </select>
+
+      <label for="levelSelect"><span class="doodle-emoji">🌟</span> Select Level:</label>
+      <select id="levelSelect">
+        <option value="easy">Easy (Warm-up)</option>
+        <option value="medium">Medium (Good Test)</option>
+        <option value="hard">Hard (Brain Buster)</option>
+      </select>
+
+      <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div class="container" id="quizContainer" style="display: none;">
+      <div id="timer">Time Left: </div>
+      <div id="quiz">
+        <!-- Questions will be dynamically inserted here -->
+      </div>
+      <button onclick="submitQuiz()">Submit Answers</button>
+    </div>
+
+    <div class="container" id="resultContainer" style="display: none;">
+      <h2><span class="doodle-emoji">🏆</span> Scoreboard</h2>
+      <div id="result">
+        <!-- Results will be dynamically inserted here -->
+      </div>
+      <button onclick="location.reload()">Play Another Quiz</button>
+    </div>
+
+    <script>
+   
+      
+      const questions = [
+        // EASY (30 Questions)
+        { level: 'easy', q: 'What is the capital of France?', options: ['Paris', 'London', 'Rome', 'Berlin'], answer: 'Paris', img: 'https://images.unsplash.com/photo-1551866442-64e75e911c23?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fGZyYW5jZXxlbnwwfHwwfHx8MA%3D%3D' },
+        { level: 'easy', q: 'How many rings are on the Olympic symbol?', options: ['Three', 'Four', 'Five', 'Six'], answer: 'Five', img: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Olympic_rings_without_rims.svg' },
+        { level: 'easy', q: 'Which is the largest continent by area?', options: ['Africa', 'Asia', 'Europe', 'Australia'], answer: 'Asia', img: 'https://images.unsplash.com/photo-1723306743338-04d754fa88e7?q=80&w=1012&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+        { level: 'easy', q: 'Which animal is the National Animal of India?', options: ['Lion', 'Elephant', 'Tiger', 'Leopard'], answer: 'Tiger', img: 'https://media.istockphoto.com/id/1399292810/photo/group-of-wildlife-animals-in-the-jungle-together.jpg?s=612x612&w=0&k=20&c=NXVzp7awiZhUf-OjcSmaDTcWz3h_XyGcozlTFD883eg='},
+        { level: 'easy', q: 'Who won the 2019 Cricket World Cup?', options: ['India', 'Australia', 'England', 'New Zealand'], answer: 'England', img: 'https://images.unsplash.com/photo-1637203723757-a9b26181e1ad?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8d29ybGQlMjBjdXAlMjB0cm9waHl8ZW58MHx8MHx8fDA%3D' },
+        { level: 'easy', q: 'Which color is not typically found in a rainbow?', options: ['Red', 'Indigo', 'Black', 'Green'], answer: 'Black', img: 'https://upload.wikimedia.org/wikipedia/commons/6/6e/Rainbow_with_sunlight.jpg' },
+        { level: 'easy', q: 'How many sides does a triangle have?', options: ['Two', 'Three', 'Four', 'Five'], answer: 'Three', img: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Triangle_geometry_river_simple.svg' },
+        { level: 'easy', q: 'What is the freezing point of water in Celsius?', options: ['100', '32', '0', '-10'], answer: '0', img: 'https://static.vecteezy.com/system/resources/thumbnails/008/468/264/small_2x/isolated-clean-water-blue-drop-illustration-vector.jpg' },
+        { level: 'easy', q: 'Which planet is closest to the Sun?', options: ['Venus', 'Earth', 'Mars', 'Mercury'], answer: 'Mercury', img: 'https://upload.wikimedia.org/wikipedia/commons/c/cf/Planet_collage_to_scale.jpg' },
+        { level: 'easy', q: 'Who wrote the famous play "Romeo and Juliet"?', options: ['Charles Dickens', 'William Shakespeare', 'Jane Austen', 'Mark Twain'], answer: 'William Shakespeare', img: 'https://upload.wikimedia.org/wikipedia/commons/a/a2/Shakespeare.jpg' },
+        { level: 'easy', q: 'What is the main ingredient in bread?', options: ['Sugar', 'Flour', 'Milk', 'Eggs'], answer: 'Flour', img: 'https://assets.bonappetit.com/photos/5c62e4a3e81bbf522a9579ce/1:1/pass/milk-bread.jpg' },
+        { level: 'easy', q: 'How many days are in a leap year?', options: ['360', '365', '366', '364'], answer: '366', img: 'https://media.istockphoto.com/id/181866332/photo/red-wall-calendar.jpg?s=612x612&w=0&k=20&c=FpWwH-rY03pLmNsibkcJ_zbnqCIx1sbI5pRsQ9q5yLg=' },
+        { level: 'easy', q: 'What object is used to hit a baseball?', options: ['Stick', 'Club', 'Racket', 'Bat'], answer: 'Bat', img: 'https://upload.wikimedia.org/wikipedia/commons/0/03/Baseball_bat_and_ball.jpg' },
+        { level: 'easy', q: 'What is $5 + 7$?', options: ['10', '11', '12', '13'], answer: '12', img: 'https://img.freepik.com/free-photo/blackboard-inscribed-with-scientific-formulas-calculations_1150-19413.jpg?semt=ais_hybrid&w=740&q=80' },
+        { level: 'easy', q: 'Which language is spoken in Spain?', options: ['French', 'Italian', 'Spanish', 'Portuguese'], answer: 'Spanish', img: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg' },
+        { level: 'easy', q: 'The largest mammal in the world is the...', options: ['Elephant', 'Blue Whale', 'Giraffe', 'Hippo'], answer: 'Blue Whale', img: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Blue_Whale_001_body_jb.jpg' },
+        { level: 'easy', q: 'What is the primary color yellow mixed with?', options: ['Red', 'Blue', 'Green', 'Orange'], answer: 'Blue', img: 'https://img.freepik.com/premium-photo/abstract-bright-yellow-background-design-text_338866-139.jpg?semt=ais_hybrid&w=740&q=80' },
+        { level: 'easy', q: 'What do bees produce?', options: ['Milk', 'Sugar', 'Honey', 'Wax'], answer: 'Honey', img: 'https://westernpest.com/wp-content/uploads/honey-bee-4.jpg' },
+        { level: 'easy', q: 'Which famous clock tower is in London?', options: ['Eiffel Tower', 'Big Ben', 'Leaning Tower', 'CN Tower'], answer: 'Big Ben', img: 'https://img.freepik.com/free-vector/illustration-uk-flag_53876-18166.jpg?semt=ais_hybrid&w=740&q=80' },
+        { level: 'easy', q: 'A baby cat is called a...', options: ['Puppy', 'Kid', 'Kitten', 'Cub'], answer: 'Kitten', img: 'https://upload.wikimedia.org/wikipedia/commons/8/8c/Kitten_in_Rizal_Park%2C_Manila.jpg' },
+        { level: 'easy', q: 'What is the chemical symbol for table salt?', options: ['H2O', 'CO2', 'NaCl', 'O2'], answer: 'NaCl', img: 'https://media.istockphoto.com/id/1051727580/photo/crystals-of-shallow-salt-in-a-scoop-spoon-on-a-dark-gray-table-background-for-advertising.jpg?s=612x612&w=0&k=20&c=gY7sQzv5Yxan44LS8vkDZe9Px4Su9uz_kY0oItEovEQ=' },
+        { level: 'easy', q: 'What is the largest organ in the human body?', options: ['Heart', 'Brain', 'Skin', 'Lungs'], answer: 'Skin', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3l9coELEDiEwkaezvAwMbvYSThP6PCZfvlw&s' },
+        { level: 'easy', q: 'Which social media platform uses "fleets" or "stories"?', options: ['LinkedIn', 'Twitter', 'Instagram', 'Pinterest'], answer: 'Instagram', img:'https://images.unsplash.com/photo-1683721003111-070bcc053d8b?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDE0fHx8ZW58MHx8fHx8'},
+        { level: 'easy', q: 'The Earth is located in which galaxy?', options: ['Andromeda', 'Triangulum', 'Milky Way', 'Sombrero'], answer: 'Milky Way', img: 'https://media.istockphoto.com/id/481229372/photo/spiral-galaxy-illustration-of-milky-way.jpg?s=612x612&w=0&k=20&c=O-OKRJWM_XhGv48z6OhOj_tKBwEaDsvhYKguEN1yuJM=' },
+        { level: 'easy', q: 'Who discovered penicillin?', options: ['Marie Curie', 'Albert Einstein', 'Alexander Fleming', 'Louis Pasteur'], answer: 'Alexander Fleming', img: 'https://media.istockphoto.com/id/1658983167/photo/penicillin-bottle-with-a-needle-and-syringe.jpg?s=612x612&w=0&k=20&c=K-EMMP_z1gop23-R5oWr_SpInzT0tTOQa29BooRAntk=' },
+        { level: 'easy', q: 'Which sport uses the term "checkmate"?', options: ['Golf', 'Tennis', 'Chess', 'Polo'], answer: 'Chess', img: 'https://upload.wikimedia.org/wikipedia/commons/f/f9/Chess_board_opening_staunton.jpg' },
+        { level: 'easy', q: 'What is the largest internal organ?', options: ['Heart', 'Liver', 'Kidney', 'Stomach'], answer: 'Liver', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Human_Liver%2C_diagram.png' },
+        { level: 'easy', q: 'Which country is famous for the Great Wall?', options: ['Japan', 'China', 'India', 'Russia'], answer: 'China', img: 'https://upload.wikimedia.org/wikipedia/commons/6/6f/Great_Wall_of_China_July_2006.JPG' },
+
+        // MEDIUM (30 Questions)
+        { level: 'medium', q: 'Who is popularly known as the "God of Cricket"?', options: ['Virat Kohli', 'Sachin Tendulkar', 'MS Dhoni', 'Sunil Gavaskar'], answer: 'Sachin Tendulkar', img: 'https://www.shutterstock.com/image-vector/cricket-player-logo-playing-short-600nw-2417878119.jpg' },
+        { level: 'medium', q: 'Who won the 2022 FIFA World Cup?', options: ['Germany', 'Argentina', 'France', 'Brazil'], answer: 'Argentina', img: 'https://thebridge.in/h-upload/2022/11/17/40362-untitled-design-2022-11-17t103132010.webp' },
+        { level: 'medium', q: 'Who is the co-founder of Microsoft?', options: ['Steve Jobs', 'Mark Zuckerberg', 'Elon Musk', 'Bill Gates'], answer: 'Bill Gates', img: 'https://www.fineprintart.com/images/history-of-the-microsoft-logo/history-of-the-microsoft-logo-1.jpg' },
+        { level: 'medium', q: 'What is Google primary mobile operating system?', options: ['iOS', 'Android', 'Windows', 'Symbian'], answer: 'Android', img: 'https://img.freepik.com/free-psd/google-icon-isolated-3d-render-illustration_47987-9777.jpg' },
+        { level: 'medium', q: 'What is the National Flower of India?', options: ['Rose', 'Lotus', 'Lily', 'Sunflower'], answer: 'Lotus', img: 'https://media.istockphoto.com/id/178890650/photo/a-stunning-flower-collage-on-a-white-background.jpg?s=612x612&w=0&k=20&c=igqDIs_6xJ4W9aL4a7Q4A91IwguDsH6E2mCytLVjYKQ=' },
+        { level: 'medium', q: 'Which element has the chemical symbol "O"?', options: ['Gold', 'Oxygen', 'Iron', 'Carbon'], answer: 'Oxygen'},
+        { level: 'medium', q: 'What is the longest river in the world?', options: ['Amazon', 'Yangtze', 'Nile', 'Mississippi'], answer: 'Nile', img: 'https://images.pexels.com/photos/2438/nature-forest-waves-trees.jpg?cs=srgb&dl=pexels-pixabay-2438.jpg&fm=jpg' },
+        { level: 'medium', q: 'Who painted the Mona Lisa?', options: ['Vincent van Gogh', 'Pablo Picasso', 'Leonardo da Vinci', 'Claude Monet'], answer: 'Leonardo da Vinci', img: 'https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg' },
+        { level: 'medium', q: 'What is the unit of electric current?', options: ['Volt', 'Ohm', 'Watt', 'Ampere'], answer: 'Ampere' },
+        { level: 'medium', q: 'Which famous scientist developed the theory of relativity?', options: ['Isaac Newton', 'Galileo Galilei', 'Nikola Tesla', 'Albert Einstein'], answer: 'Albert Einstein'},
+        { level: 'medium', q: 'In which year did the Berlin Wall fall?', options: ['1987', '1989', '1991', '1993'], answer: '1989', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Berlinermauer.jpg/330px-Berlinermauer.jpg' },
+        { level: 'medium', q: 'What gas do plants absorb from the atmosphere?', options: ['Oxygen', 'Nitrogen', 'Carbon Dioxide', 'Helium'], answer: 'Carbon Dioxide', img: 'https://media.istockphoto.com/id/1380361370/photo/decorative-banana-plant-in-concrete-vase-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=eYADMQ9dXTz1mggdfn_exN2gY61aH4fJz1lfMomv6o4=' },
+        { level: 'medium', q: 'Which ocean is the deepest?', options: ['Atlantic', 'Indian', 'Pacific', 'Arctic'], answer: 'Pacific', img: 'https://t3.ftcdn.net/jpg/01/34/53/74/360_F_134537443_VendrqyXIWyHrZgxdIsfyKUost734JDP.jpg' },
+        { level: 'medium', q: 'What is the smallest country in the world?', options: ['Monaco', 'Nauru', 'Vatican City', 'Liechtenstein'], answer: 'Vatican City', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Large_World_Map_bright.jpg/1200px-Large_World_Map_bright.jpg' },
+        { level: 'medium', q: 'What is the chemical formula for water?', options: ['CO2', 'O2', 'H2O2', 'H2O'], answer: 'H2O', img: 'https://static.vecteezy.com/system/resources/thumbnails/008/468/264/small_2x/isolated-clean-water-blue-drop-illustration-vector.jpg' },
+        { level: 'medium', q: 'Who wrote the novel "1984"?', options: ['Aldous Huxley', 'George Orwell', 'F. Scott Fitzgerald', 'Ernest Hemingway'], answer: 'George Orwell'},
+        { level: 'medium', q: 'Which city hosted the Summer Olympics in 2016?', options: ['London', 'Tokyo', 'Rio de Janeiro', 'Beijing'], answer: 'Rio de Janeiro', img: 'https://substackcdn.com/image/fetch/$s_!Fas9!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F29dd3945-540a-45fe-b89c-d38c9e4f365f_1500x1500.jpeg' },
+        { level: 'medium', q: 'What does CPU stand for?', options: ['Central Power Unit', 'Computer Personal Utility', 'Central Processing Unit', 'Central Program Unit'], answer: 'Central Processing Unit', img: 'https://t4.ftcdn.net/jpg/01/09/59/81/360_F_109598141_hhHRriyaO2jIDUPbttE385zyEZUsrHbP.jpg' },
+        { level: 'medium', q: 'How many bones are in the average adult human body?', options: ['206', '300', '212', '198'], answer: '206', img: 'https://static.independent.co.uk/s3fs-public/thumbnails/image/2019/04/16/11/human-skeleton-1517257035kd4.jpg' },
+        { level: 'medium', q: 'Which of these is a classical music composer?', options: ['Elvis Presley', 'Ludwig van Beethoven', 'Bob Dylan', 'Freddie Mercury'], answer: 'Ludwig van Beethoven'},
+        { level: 'medium', q: 'The disease Scurvy is caused by a deficiency of which vitamin?', options: ['Vitamin A', 'Vitamin C', 'Vitamin D', 'Vitamin K'], answer: 'Vitamin C'},
+        { level: 'medium', q: 'Which famous tennis tournament is played on clay courts?', options: ['Wimbledon', 'US Open', 'Australian Open', 'French Open'], answer: 'French Open', img: 'https://thumbs.dreamstime.com/b/tennis-championship-game-tournament-background-tennis-competition-flyer-poster-league-design-tennis-championship-game-tournament-121628943.jpg' },
+        { level: 'medium', q: 'What is the maximum number of players on a field in a soccer team at one time?', options: ['10', '11', '12', '15'], answer: '11', img: 'https://media.istockphoto.com/id/1558726582/photo/adult-football-competition-soccer-football-player-dribbling-a-ball-and-kick-a-ball-during.jpg?s=612x612&w=0&k=20&c=aRFpVrLzK777wMGL8O_pFvxuNSdBAWmFTsLjlGhms9c=' },
+        { level: 'medium', q: 'The currency of Japan is the...', options: ['Won', 'Yuan', 'Yen', 'Rupee'], answer: 'Yen', img: 'https://media.istockphoto.com/id/1332466002/vector/flag-of-japan-vector.jpg?s=612x612&w=0&k=20&c=-Yz-gdKys0BzQKMk5Mths2rrZSFrN3jzlFtJ0GWAnQo=' },
+        { level: 'medium', q: 'Which programming language is known as the "language of the web"?', options: ['Python', 'Java', 'JavaScript', 'C#'], answer: 'JavaScript', img: 'https://www.simplilearn.com/ice9/free_resources_article_thumb/Best-Programming-Languages-to-Start-Learning-Today.jpg' },
+        { level: 'medium', q: 'What year did India gain independence?', options: ['1942', '1947', '1950', '1962'], answer: '1947', img: 'https://cdn.britannica.com/97/1597-050-008F30FA/Flag-India.jpg' },
+        { level: 'medium', q: 'Which animal is the fastest swimmer?', options: ['Dolphin', 'Shark', 'Swordfish', 'Tuna'], answer: 'Swordfish'},
+        { level: 'medium', q: 'What is the biggest movie market in the world?', options: ['USA', 'India', 'China', 'UK'], answer: 'China', img: 'https://plus.unsplash.com/premium_photo-1710409625244-e9ed7e98f67b?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8bW92aWV8ZW58MHx8MHx8fDA%3D' },
+        { level: 'medium', q: 'What is the powerhouse of the cell?', options: ['Nucleus', 'Ribosome', 'Mitochondria', 'Chloroplast'], answer: 'Mitochondria', img: 'https://images.twinkl.co.uk/tw1n/image/private/t_630/u/ux/wiki-cells-1_ver_1.jpg' },
+        { level: 'medium', q: 'Which country is the origin of the martial art Taekwondo?', options: ['China', 'Japan', 'South Korea', 'Vietnam'], answer: 'South Korea'},
+        
+
+        // HARD (30 Questions)
+        { level: 'hard', q: 'Who is the youngest-ever World Chess Champion Grandmaster?', options: ['Magnus Carlsen', 'Garry Kasparov', 'Viswanathan Anand', 'Bobby Fischer'], answer: 'Garry Kasparov', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQN35oUPDlZ340sJvvDBVUtGpcyVKU_qzLj2g&s' },
+        { level: 'hard', q: 'Which female education advocate won the Nobel Peace Prize in 2014?', options: ['Greta Thunberg', 'Mother Teresa', 'Malala Yousafzai', 'Wangari Maathai'], answer: 'Malala Yousafzai'},
+        { level: 'hard', q: 'Which of the following is not a programming language?', options: ['Python', 'Java', 'HTML', 'C++'], answer: 'HTML', img: 'https://www.simplilearn.com/ice9/free_resources_article_thumb/Best-Programming-Languages-to-Start-Learning-Today.jpg' },
+        { level: 'hard', q: 'Which IPL team is based in Kolkata?', options: ['MI', 'RCB', 'KKR', 'CSK'], answer: 'KKR', img: 'https://techstory.in/wp-content/uploads/2022/03/IPL.jpg' },
+        { level: 'hard', q: 'Who is the CEO of SpaceX and Tesla?', options: ['Bill Gates', 'Jeff Bezos', 'Elon Musk', 'Larry Page'], answer: 'Elon Musk', img: 'https://static.vecteezy.com/system/resources/previews/020/336/484/non_2x/tesla-logo-tesla-icon-transparent-png-free-vector.jpg' },
+        { level: 'hard', q: 'What is the primary function of the mitochondria in a cell?', options: ['Protein synthesis', 'Waste removal', 'DNA replication', 'Energy production'], answer: 'Energy production', img: 'https://c02.purpledshub.com/uploads/sites/41/2018/07/GettyImages-758308227-e522818.jpg' },
+        { level: 'hard', q: 'Who formulated the laws of motion and universal gravitation?', options: ['Albert Einstein', 'Isaac Newton', 'Stephen Hawking', 'Max Planck'], answer: 'Isaac Newton'},
+        { level: 'hard', q: 'What chemical compound is primarily responsible for the red color of blood?', options: ['Chlorophyll', 'Melanin', 'Hemoglobin', 'Collagen'], answer: 'Hemoglobin', img: 'https://i.natgeofe.com/n/43574b02-4128-4517-9b6e-62fb5d6121b6/ad1394c0eea28073ea1bacdaadab.jpg' },
+        { level: 'hard', q: 'In computing, what does "SQL" stand for?', options: ['Standard Query Language', 'Structured Query Logic', 'Sequential Query Logic', 'Structured Query Language'], answer: 'Structured Query Language', img: 'https://www.techmonitor.ai/wp-content/uploads/sites/29/2016/06/SQL.png' },
+        { level: 'hard', q: 'Which country is the largest producer of coffee globally?', options: ['Vietnam', 'Colombia', 'Ethiopia', 'Brazil'], answer: 'Brazil', img: 'https://upload.wikimedia.org/wikipedia/commons/c/c5/Roasted_coffee_beans.jpg' },
+        { level: 'hard', q: 'What is the term for a group of crows?', options: ['Flock', 'Murder', 'Pod', 'School'], answer: 'Murder'},
+        { level: 'hard', q: 'Which gas is known as Laughing Gas?', options: ['Methane', 'Nitrous Oxide', 'Carbon Monoxide', 'Ammonia'], answer: 'Nitrous Oxide', img: 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Purplesmoke.jpg' },
+        { level: 'hard', q: 'Who developed the first theory of artificial intelligence in 1950?', options: ['John von Neumann', 'Alan Turing', 'Marvin Minsky', 'Claude Shannon'], answer: 'Alan Turing', img: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Artificial_Intelligence%2C_AI.jpg' },
+        { level: 'hard', q: 'What is the only element that exists as a solid, liquid, and gas at room temperature?', options: ['Oxygen', 'Mercury', 'Water', 'Bromine'], answer: 'Water'},
+        { level: 'hard', q: 'Which city is built on 14 islands?', options: ['Venice', 'Stockholm', 'Amsterdam', 'Copenhagen'], answer: 'Stockholm'},
+        { level: 'hard', q: 'What is the primary product of the Krebs cycle?', options: ['Glucose', 'ATP', 'Pyruvate', 'Carbon Dioxide'], answer: 'ATP' },
+        { level: 'hard', q: 'Which Indian physicist is known for his work on quantum field theory and the theory of black hole radiation?', options: ['C. V. Raman', 'Homi J. Bhabha', 'Satyendra Nath Bose', 'Meghnad Saha'], answer: 'Satyendra Nath Bose', img: 'https://images.newscientist.com/wp-content/uploads/2019/07/19100305/quantum_mechanicswk394y.jpg' },
+        { level: 'hard', q: 'In finance, what does "EBITDA" stand for?', options: ['Earnings Before Interest, Taxes, Depreciation, and Amortization', 'Equity Before Investment, Trading, Debt, and Assets', 'Earnings Before Investment, Taxes, Depreciation, and Assets', 'Effective Banking Interest and Debt Arrangement'], answer: 'Earnings Before Interest, Taxes, Depreciation, and Amortization' },
+        { level: 'hard', q: 'The Richter scale is used to measure the intensity of which natural phenomenon?', options: ['Tornadoes', 'Volcanic Eruptions', 'Earthquakes', 'Tsunamis'], answer: 'Earthquakes' },
+        { level: 'hard', q: 'Which metal has the highest melting point?', options: ['Platinum', 'Tungsten', 'Steel', 'Titanium'], answer: 'Tungsten', img: 'https://selmach.com/wp-content/smush-webp/2018/09/10-things-you-never-realised-you-didnt-know-about-metal-1024x683.jpg.webp' },
+        { level: 'hard', q: 'Who was the first woman to win a Nobel Prize?', options: ['Rosalind Franklin', 'Mother Teresa', 'Marie Curie', 'Ada Lovelace'], answer: 'Marie Curie', img: 'https://upload.wikimedia.org/wikipedia/en/4/44/NobelPrize1.jpg' },
+        { level: 'hard', q: 'What is the largest moon of Saturn?', options: ['Enceladus', 'Rhea', 'Titan', 'Tethys'], answer: 'Titan', img: 'https://i.natgeofe.com/k/d6f301e9-0c90-4379-9a64-1e1e9b048419/planetary-lineup_square.jpg' },
+        ];
+
+
+      // --- QUIZ LOGIC ---
+      let username = '',
+        level = '',
+        timeLeft = 0,
+        timer,
+        selected = [];
+      
+      const TOTAL_QUESTIONS_PER_QUIZ = 10; 
+
+      function customAlert(message) {
+          // Replaces native alert() with a modal/message box style
+          let alertBox = document.getElementById('customAlert');
+
+          if (!alertBox) {
+              alertBox = document.createElement('div');
+              alertBox.id = 'customAlert';
+              alertBox.style.cssText = `
+                  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                  background: #e74c3c; color: white; padding: 20px; 
+                  border-radius: 10px; z-index: 1000; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                  font-family: 'Fredoka', sans-serif; font-size: 1.2em;
+                  border: 3px solid var(--text-dark); text-align: center;
+              `;
+              document.body.appendChild(alertBox);
+              setTimeout(() => {
+                  if (document.body.contains(alertBox)) {
+                      document.body.removeChild(alertBox);
+                  }
+              }, 3000);
+          }
+          alertBox.textContent = message;
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      function startQuiz() {
+        username = document.getElementById('username').value.trim();
+        level = document.getElementById('levelSelect').value;
+        timeLeft = parseInt(document.getElementById('timerSelect').value);
+        
+        if (username === '') {
+          customAlert('Please enter your name to start the quiz!');
+          document.getElementById('username').focus();
+          return;
+        }
+
+        let pool = questions.filter((q) => q.level === level);
+        
+        // Select 10 random questions from the pool
+        const numQuestions = Math.min(TOTAL_QUESTIONS_PER_QUIZ, pool.length);
+        selected = shuffle(pool).slice(0, numQuestions); 
+        
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('quizContainer').style.display = 'block';
+        
+        displayQuestions();
+        startTimer();
+      }
+
+      function displayQuestions() {
+        const quizDiv = document.getElementById('quiz');
+        quizDiv.innerHTML = '';
+        selected.forEach((item, i) => {
+          // Since all items have an 'img' property now, this will always include an image.
+          const imageHtml = item.img ? `<img src="${item.img}" alt="Context Image" class="question-image" onerror="this.style.display='none'; this.parentElement.style.flexDirection='column';">` : '';
+          
+          quizDiv.innerHTML += `
+            <div class="question">
+                <strong>Q${i + 1}: ${item.q}</strong>
+                <div class="question-content">
+                    <div class="question-options">
+                        ${item.options.map(opt => ` 
+                          <label>
+                            <input type="radio" name="q${i}" value="${opt}"> 
+                            ${opt}
+                          </label>`).join('')}
+                    </div>
+                    ${imageHtml}
+                </div>
+            </div>`;
+        });
+      }
+
+      function startTimer() {
+        const timerElement = document.getElementById('timer');
+        timerElement.textContent = `Time Left: ${timeLeft} sec`;
+        timerElement.classList.remove('timer-low');
+
+        if (timer) clearInterval(timer); 
+
+        timer = setInterval(() => {
+          timeLeft--;
+          timerElement.textContent = `Time Left: ${timeLeft} sec`;
+
+          if (timeLeft <= 10) { 
+              timerElement.classList.add('timer-low');
+          }
+
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            submitQuiz();
+            customAlert('Time is up! Submitting your answers.');
+          }
+        }, 1000);
+      }
+
+      function submitQuiz() {
+        clearInterval(timer);
+        let score = 0;
+        let wrong = [];
+        const totalQuestions = selected.length;
+        
+        selected.forEach((item, i) => {
+          const selectedOption = document.querySelector(`input[name="q${i}"]:checked`);
+          
+          if (selectedOption && selectedOption.value === item.answer) {
+            score++;
+          } else {
+            wrong.push({
+              q: item.q,
+              correct: item.answer,
+              your: selectedOption ? selectedOption.value : 'No answer selected',
+            });
+          }
+        });
+        
+        let percent = (score / totalQuestions) * 100;
+        let quote;
+
+        // Motivational Quote Logic
+        if (percent === 100) {
+            quote = "Perfect Score! You're a true genius! 🎉";
+        } else if (percent >= 80) {
+            quote = "Excellent job! You're a quiz master in the making! 🌟";
+        } else if (percent >= 50) {
+            quote = "Good effort! Keep practicing, every mistake is a lesson! 💪";
+        } else {
+            // Lowest tier quote
+            quote = "Every quiz is a chance to learn something new! 🚀";
+        }
+
+        // High Score Logic
+        let key = `highscore_${level}_${username.replace(/\s/g, '_')}`; 
+        let prev = parseInt(localStorage.getItem(key)) || 0;
+        let newHighScore = Math.max(score, prev);
+        if (score > prev) {
+            localStorage.setItem(key, score);
+        }
+        
+        // Review of Wrong Answers
+        let wrongHTML = wrong.length === 0 ? 
+          `<p class='correct'><span class='doodle-emoji'>✅</span> You got all ${totalQuestions} questions right! Absolutely amazing!</p>` :
+          `<div class='review'>
+            <h3><span class='doodle-emoji'>📝</span> Review Your Answers:</h3>
+            ${wrong.map(w =>
+              `<p>
+                <strong>Q:</strong> ${w.q}<br />
+                <span class="wrong">Your Answer: ${w.your}</span><br />
+                <span class="correct">Correct Answer: ${w.correct}</span>
+              </p>`
+            ).join('')}
+          </div>`;
+
+        // Display Results with new Scoreboard structure
+        document.getElementById('quizContainer').style.display = 'none';
+        document.getElementById('resultContainer').style.display = 'block';
+        document.getElementById('result').innerHTML = `
+          <div class="player-info-card">
+            Player: <strong>${username}</strong><br />
+            Level: <strong>${level.toUpperCase()}</strong>
+          </div>
+
+          <div class="score-summary">
+            <div class="score-box score-box-current">
+              <h4>Your Score</h4>
+              <p>${score} / ${totalQuestions}</p>
+            </div>
+            <div class="score-box score-box-high">
+              <h4>High Score</h4>
+              <p>${newHighScore} / ${totalQuestions}</p>
+            </div>
+          </div>
+
+          <em>"${quote}"</em><br />
+          ${wrongHTML}`;
+      }
+    </script>
+  </body>
+</html>
